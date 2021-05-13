@@ -1,0 +1,51 @@
+type User @model {
+  id: ID!
+  username: String!
+  email: String!
+
+  orders: [Order] @connection(keyName: "byUser", fields: ["id"])
+  provider: Provider @connection(fields: ["id"])
+}
+
+type Provider @model @key(name: "byUser", fields: ["userId"]) {
+  id: ID!
+  type: String!
+  latitude: Float
+  longitude: Float
+  heading: Float
+  isActive: Boolean
+
+  orders: [Order] @connection(keyName: "byProvider", fields: ["id"])
+
+  userId: ID!
+  user: User @connection(fields: ["userId"])
+}
+
+type Order
+  @model
+  @key(name: "byUser", fields: ["userId"])
+  @key(name: "byProvider", fields: ["providerId", "createdAt"]) {
+  id: ID!
+  createdAt: String!
+
+  type: String!
+  status: String
+
+  originLatitude: Float!
+  oreiginLongitude: Float!
+
+  destLatitude: Float!
+  destLongitude: Float!
+
+  userId: ID!
+  user: User @connection(fields: ["userId"])
+
+  providerId: ID!
+  provider: Provider @connection(fields: ["providerId"])
+}
+
+type Subscription {
+  onOrderUpdated(id: ID!): Order @aws_subscribe(mutations: ["updateOrder"])
+  onProviderUpdated(id: ID!): Provider
+    @aws_subscribe(mutations: ["updateProvider"])
+}
